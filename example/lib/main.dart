@@ -1,9 +1,8 @@
 import 'package:davi/davi.dart';
+import 'package:example/character.dart';
+import 'package:example/demo_checkbox.dart';
+import 'package:example/skills_widget.dart';
 import 'package:flutter/material.dart';
-
-import 'character.dart';
-import 'demo_checkbox.dart';
-import 'skills_widget.dart';
 
 void main() {
   runApp(const DemoApp());
@@ -73,7 +72,8 @@ class _HomePageState extends State<HomePage> {
         name: 'Name',
         width: 100,
         rowSpan: (params) => params.rowIndex == _model!.rowsLength - 2 ? 2 : 1,
-        cellValue: (params) => params.data.name));
+        cellValue: (params) => params.data.name,
+        headerBackground: Colors.green));
     list.add(DaviColumn(
         pinStatus: _leftPinned ? PinStatus.left : PinStatus.none,
         name: 'Gender',
