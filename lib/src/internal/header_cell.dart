@@ -97,6 +97,10 @@ class _DaviHeaderCellState extends State<DaviHeaderCell> {
 
     if (resizable) {
       header = Stack(clipBehavior: Clip.none, children: [
+        Positioned.fill(
+            child: Container(
+          color: widget.column.headerBackground,
+        )),
         Positioned.fill(child: header),
         Positioned(
             top: 0,
