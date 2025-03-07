@@ -1,13 +1,15 @@
 import 'package:davi/davi.dart';
 import 'pivot_data.dart';
 
-class PivotTableModel<DATA> extends DaviModel<DATA> {
-  final List<PivotData<DATA>> _pivotData;
-  final List<PivotRowData<DATA>> _flattenedRows = [];
+class PivotTableModel<T, L extends HierarchyLevel> extends DaviModel<T> {
+  final List<PivotData<T, L>> _pivotData;
+  final List<PivotRowData<T, L>> _flattenedRows = [];
+  final List<L> levels;
   
   PivotTableModel({
-    required List<PivotData<DATA>> pivotData,
-    required List<DaviColumn<DATA>> columns,
+    required List<PivotData<T, L>> pivotData,
+    required List<DaviColumn<T>> columns,
+    required this.levels,
   }) : _pivotData = pivotData,
        super(rows: [], columns: columns) {
     _flattenData();
@@ -17,12 +19,12 @@ class PivotTableModel<DATA> extends DaviModel<DATA> {
     _flattenedRows.clear();
     int originalIndex = 0;
     
-    void addNode(PivotData<DATA> node, int level) {
+    void addNode(PivotData<T, L> node, int levelIndex) {
       final currentIndex = originalIndex++;
       
-      _flattenedRows.add(PivotRowData<DATA>(
+      _flattenedRows.add(PivotRowData<T, L>(
         data: node.data,
-        level: level,
+        level: node.level,
         hasChildren: node.children.isNotEmpty,
         isExpanded: node.isExpanded,
         originalIndex: currentIndex,
@@ -30,7 +32,7 @@ class PivotTableModel<DATA> extends DaviModel<DATA> {
       
       if (node.isExpanded) {
         for (var child in node.children) {
-          addNode(child, level + 1);
+          addNode(child, levelIndex + 1);
         }
       }
     }
@@ -51,7 +53,7 @@ class PivotTableModel<DATA> extends DaviModel<DATA> {
     if (!rowData.hasChildren) return;
     
     // Find the original node and toggle it
-    PivotData<DATA>? findOriginalNode(List<PivotData<DATA>> nodes, int currentIndex, int targetIndex) {
+    PivotData<T, L>? findOriginalNode(List<PivotData<T, L>> nodes, int currentIndex, int targetIndex) {
       for (var node in nodes) {
         if (currentIndex == targetIndex) return node;
         currentIndex++;
@@ -73,7 +75,7 @@ class PivotTableModel<DATA> extends DaviModel<DATA> {
     }
   }
   
-  int _countDescendants(PivotData<DATA> node) {
+  int _countDescendants(PivotData<T, L> node) {
     if (!node.isExpanded) return 0;
     
     int count = 0;
@@ -84,8 +86,8 @@ class PivotTableModel<DATA> extends DaviModel<DATA> {
     return count;
   }
   
-  int getLevel(int rowIndex) {
-    if (rowIndex < 0 || rowIndex >= _flattenedRows.length) return 0;
+  L getLevel(int rowIndex) {
+    if (rowIndex < 0 || rowIndex >= _flattenedRows.length) return levels[0];
     return _flattenedRows[rowIndex].level;
   }
   
