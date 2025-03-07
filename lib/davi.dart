@@ -37,3 +37,8 @@ export 'src/theme/scrollbar_theme_data.dart';
 export 'src/theme/theme.dart';
 export 'src/theme/theme_data.dart';
 export 'src/theme/theme_row_color.dart';
+// Pivot table exports
+export 'src/pivot/pivot_data.dart';
+export 'src/pivot/pivot_model.dart';
+export 'src/pivot/pivot_builder.dart';
+
