@@ -31,19 +31,16 @@ class PivotTableModel<T, L extends HierarchyLevel> extends DaviModel<T> {
     required List<L> levels,
     required PivotColumnBuilder<T, L> columnBuilder,
   }) {
-    // Build columns first
-    final columns = columnBuilder.build(PivotTableModel<T, L>(
+    final model = PivotTableModel<T, L>(
       pivotData: pivotData,
       columns: [],
       levels: levels,
-    ));
-    
-    // Create final model with all columns
-    return PivotTableModel<T, L>(
-      pivotData: pivotData,
-      columns: columns,
-      levels: levels,
     );
+    
+    final columns = columnBuilder.build(model);
+    model.addColumns(columns);
+    
+    return model;
   }
 
   void _flattenData() {
