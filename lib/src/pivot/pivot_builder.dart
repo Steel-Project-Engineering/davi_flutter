@@ -1,20 +1,34 @@
 import 'package:davi/src/pivot/pivot_data.dart';
 
+/// Builds a hierarchical pivot table structure from flat data.
+/// 
+/// [T] is the type of data items being organized.
+/// [L] is the type of hierarchy levels used for grouping.
 class PivotBuilder<T, L extends HierarchyLevel> {
+  /// The flat list of data items to organize
   final List<T> data;
+  
+  /// Available hierarchy levels in order from highest to lowest
   final List<L> levels;
+  
+  /// Function to determine the initial level for a data item
   final L Function(T data) getLevel;
-  final T Function(List<T> groupData) aggregate;
+  
+  /// Function to extract the value for a given level from a data item
   final String Function(T data, L level) getValueForLevel;
+  
+  /// Function to aggregate multiple items into a single representative item
+  final T Function(List<T> groupData) aggregate;
 
-  PivotBuilder({
+  const PivotBuilder({
     required this.data,
     required this.levels,
     required this.getLevel,
-    required this.aggregate,
     required this.getValueForLevel,
+    required this.aggregate,
   });
 
+  /// Builds the hierarchical pivot structure from the flat data
   List<PivotData<T, L>> build() {
     return _buildGroups(data, 0);
   }

@@ -1,11 +1,18 @@
 import 'package:davi/davi.dart';
-import 'pivot_data.dart';
 
+/// Model for managing pivot table state and data presentation.
+/// 
+/// Extends [DaviModel] to provide pivot-specific functionality while maintaining
+/// compatibility with the Davi table widget.
+/// 
+/// [T] is the type of data items being displayed.
+/// [L] is the type of hierarchy levels used for grouping.
 class PivotTableModel<T, L extends HierarchyLevel> extends DaviModel<T> {
   final List<PivotData<T, L>> _pivotData;
   final List<PivotRowData<T, L>> _flattenedRows = [];
   final List<L> levels;
   
+  /// Creates a pivot table model with predefined columns
   PivotTableModel({
     required List<PivotData<T, L>> pivotData,
     required List<DaviColumn<T>> columns,
@@ -13,6 +20,30 @@ class PivotTableModel<T, L extends HierarchyLevel> extends DaviModel<T> {
   }) : _pivotData = pivotData,
        super(rows: [], columns: columns) {
     _flattenData();
+  }
+
+  /// Creates a pivot table model using a column builder
+  /// 
+  /// This is the recommended constructor as it handles proper column setup
+  /// for hierarchy levels and value columns.
+  factory PivotTableModel.withColumnBuilder({
+    required List<PivotData<T, L>> pivotData,
+    required List<L> levels,
+    required PivotColumnBuilder<T, L> columnBuilder,
+  }) {
+    // Build columns first
+    final columns = columnBuilder.build(PivotTableModel<T, L>(
+      pivotData: pivotData,
+      columns: [],
+      levels: levels,
+    ));
+    
+    // Create final model with all columns
+    return PivotTableModel<T, L>(
+      pivotData: pivotData,
+      columns: columns,
+      levels: levels,
+    );
   }
 
   void _flattenData() {
@@ -46,6 +77,7 @@ class PivotTableModel<T, L extends HierarchyLevel> extends DaviModel<T> {
     addRows(_flattenedRows.map((row) => row.data).toList());
   }
   
+  /// Toggles the expanded state of a row
   void toggleExpand(int rowIndex) {
     if (rowIndex < 0 || rowIndex >= _flattenedRows.length) return;
     
@@ -86,16 +118,19 @@ class PivotTableModel<T, L extends HierarchyLevel> extends DaviModel<T> {
     return count;
   }
   
+  /// Gets the hierarchy level for a row
   L getLevel(int rowIndex) {
     if (rowIndex < 0 || rowIndex >= _flattenedRows.length) return levels[0];
     return _flattenedRows[rowIndex].level;
   }
   
+  /// Checks if a row has child rows
   bool hasChildren(int rowIndex) {
     if (rowIndex < 0 || rowIndex >= _flattenedRows.length) return false;
     return _flattenedRows[rowIndex].hasChildren;
   }
   
+  /// Checks if a row's children are currently visible
   bool isExpanded(int rowIndex) {
     if (rowIndex < 0 || rowIndex >= _flattenedRows.length) return false;
     return _flattenedRows[rowIndex].isExpanded;

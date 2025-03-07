@@ -46,7 +46,8 @@ class SalesData {
   final String batch;       // Level 10
   final double amount;
   final double usedAmount;
-  
+  final double lastPurchaseAmount;
+
   const SalesData({
     required this.division,
     required this.region,
@@ -60,6 +61,7 @@ class SalesData {
     required this.batch,
     required this.amount,
     required this.usedAmount,
+    required this.lastPurchaseAmount,
   });
 }
 
@@ -98,6 +100,7 @@ class _PivotTableExampleState extends State<PivotTableExample> {
     for (int i = 0; i < totalEntries; i++) {
       final amount = _random.nextDouble() * 10000;
       final usedAmount = amount * (0.6 + (_random.nextDouble() * 0.4));
+      final lastPurchaseAmount = _random.nextDouble() * 10000;
       
       data.add(SalesData(
         division: divisions[_random.nextInt(divisions.length)],
@@ -112,6 +115,7 @@ class _PivotTableExampleState extends State<PivotTableExample> {
         batch: batches[_random.nextInt(batches.length)],
         amount: amount,
         usedAmount: usedAmount,
+        lastPurchaseAmount: lastPurchaseAmount,
       ));
     }
 
@@ -136,27 +140,15 @@ class _PivotTableExampleState extends State<PivotTableExample> {
       data: data,
       levels: levels,
       getLevel: (data) => levels[0],
-      getValueForLevel: (data, level) {
-        switch (level) {
-          case SalesLevel.division: return data.division;
-          case SalesLevel.region: return data.region;
-          case SalesLevel.department: return data.department;
-          case SalesLevel.category: return data.category;
-          case SalesLevel.subCategory: return data.subCategory;
-          case SalesLevel.product: return data.product;
-          case SalesLevel.variant: return data.variant;
-          case SalesLevel.size: return data.size;
-          case SalesLevel.color: return data.color;
-          case SalesLevel.batch: return data.batch;
-        }
-      },
+      getValueForLevel: _getLevelText,
       aggregate: (groupData) {
-        double totalAmount = 0;
+        double maxAmount = 0;
         double minUsedAmount = double.infinity;
-        
+        double totalLastPurchaseAmount = 0;
         for (var item in groupData) {
-          totalAmount += item.amount;
+          maxAmount = max(maxAmount, item.amount);
           minUsedAmount = min(minUsedAmount, item.usedAmount);
+          totalLastPurchaseAmount += item.lastPurchaseAmount;
         }
 
         return SalesData(
@@ -170,93 +162,44 @@ class _PivotTableExampleState extends State<PivotTableExample> {
           size: groupData.first.size,
           color: groupData.first.color,
           batch: groupData.first.batch,
-          amount: totalAmount,
+          amount: maxAmount,
           usedAmount: minUsedAmount,
+          lastPurchaseAmount: totalLastPurchaseAmount,
         );
       },
     );
 
-    final stopwatch = Stopwatch()..start();
-    print('Building pivot data...');
     final pivotData = pivotBuilder.build();
-    print('Pivot data built in ${stopwatch.elapsedMilliseconds}ms');
 
-    final columns = levels.map((level) => DaviColumn<SalesData>(
-      id: level.id,
-      name: level.displayName,
-      width: 120,
-      cellWidget: (params) {
-        final hasChildren = model.hasChildren(params.rowIndex);
-        final isExpanded = model.isExpanded(params.rowIndex);
-        final currentLevel = model.getLevel(params.rowIndex);
-        
-        if (level != currentLevel) return const SizedBox.shrink();
-        
-        String text = _getLevelText(params.data, level);
-        return Row(
-          children: [
-            if (hasChildren)
-              IconButton(
-                icon: Icon(
-                  isExpanded ? Icons.expand_more : Icons.chevron_right,
-                  size: 20,
-                ),
-                onPressed: () => setState(() => model.toggleExpand(params.rowIndex)),
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
-                constraints: const BoxConstraints(),
-              ),
-            Expanded(
-              child: Text(
-                text,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontWeight: hasChildren ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    )).toList();
-
-    // Add amount columns
-    columns.addAll([
-      DaviColumn<SalesData>(
-        id: 'amount',
-        name: 'Amount',
-        width: 120,
-        cellWidget: (params) => Text(
-          '\$${params.data.amount.toStringAsFixed(0)}',
-          style: TextStyle(
-            fontWeight: model.hasChildren(params.rowIndex) 
-                ? FontWeight.bold 
-                : FontWeight.normal,
-          ),
-        ),
-      ),
-      DaviColumn<SalesData>(
-        id: 'usedAmount',
-        name: 'Used Amount',
-        width: 120,
-        cellWidget: (params) => Text(
-          '\$${params.data.usedAmount.toStringAsFixed(0)}',
-          style: TextStyle(
-            fontWeight: model.hasChildren(params.rowIndex) 
-                ? FontWeight.bold 
-                : FontWeight.normal,
-            color: params.data.usedAmount < params.data.amount 
-                ? Colors.red 
-                : Colors.black,
-          ),
-        ),
-      ),
-    ]);
-
-    model = PivotTableModel<SalesData, SalesLevel>(
-      pivotData: pivotData,
-      columns: columns,
+    final columnBuilder = PivotColumnBuilder<SalesData, SalesLevel>(
       levels: levels,
+      getValueForLevel: _getLevelText,
+      valueColumns: {
+        'Amount': (data) => data.amount,
+        'Used Amount': (data) => data.usedAmount,
+        'Purchase Amount': (data) => data.lastPurchaseAmount,
+      },
+      valueFormatter: _formatValue,
+    );
+
+    model = PivotTableModel.withColumnBuilder(
+      pivotData: pivotData,
+      levels: levels,
+      columnBuilder: columnBuilder,
+    );
+  }
+
+  Widget _formatValue(SalesData data, double value, WidgetBuilderParams<SalesData> params) {
+    return Text(
+      '\$${value.toStringAsFixed(0)}',
+      style: TextStyle(
+        fontWeight: value == data.amount || value == data.lastPurchaseAmount
+            ? FontWeight.bold 
+            : FontWeight.normal,
+        color: value == data.usedAmount && value < data.amount
+            ? Colors.red 
+            : Colors.black,
+      ),
     );
   }
 
