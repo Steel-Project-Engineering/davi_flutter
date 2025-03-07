@@ -10,10 +10,7 @@ class PivotBuilder<T, L extends HierarchyLevel> {
   
   /// Available hierarchy levels in order from highest to lowest
   final List<L> levels;
-  
-  /// Function to determine the initial level for a data item
-  final L Function(T data) getLevel;
-  
+
   /// Function to extract the value for a given level from a data item
   final String Function(T data, L level) getValueForLevel;
   
@@ -23,7 +20,6 @@ class PivotBuilder<T, L extends HierarchyLevel> {
   const PivotBuilder({
     required this.data,
     required this.levels,
-    required this.getLevel,
     required this.getValueForLevel,
     required this.aggregate,
   });
@@ -48,10 +44,25 @@ class PivotBuilder<T, L extends HierarchyLevel> {
       List<T> groupItems = entry.value;
       bool isLeaf = levelIndex == levels.length - 1;
 
+      if (isLeaf) {
+        // For leaf nodes, create a parent node with individual items as children
+        return PivotData<T, L>(
+          data: aggregate(groupItems),
+          level: currentLevel,
+          children: groupItems.map((item) => 
+            PivotData<T, L>(
+              data: item,
+              level: currentLevel,
+              children: [],
+            )
+          ).toList(),
+        );
+      }
+
       return PivotData<T, L>(
         data: aggregate(groupItems),
         level: currentLevel,
-        children: isLeaf ? [] : _buildGroups(groupItems, levelIndex + 1),
+        children: _buildGroups(groupItems, levelIndex + 1),
       );
     }).toList();
   }

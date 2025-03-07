@@ -132,4 +132,25 @@ class PivotTableModel<T, L extends HierarchyLevel> extends DaviModel<T> {
     if (rowIndex < 0 || rowIndex >= _flattenedRows.length) return false;
     return _flattenedRows[rowIndex].isExpanded;
   }
+
+  void expandAll() {
+    _setExpansionState(true);
+  }
+
+  void collapseAll() {
+    _setExpansionState(false);
+  }
+
+  void _setExpansionState(bool expand) {
+    void traverse(List<PivotData<T, L>> nodes) {
+      for (var node in nodes) {
+        node.isExpanded = expand;
+        traverse(node.children);
+      }
+    }
+
+    traverse(_pivotData);
+    _flattenData();
+    notifyListeners();
+  }
 }

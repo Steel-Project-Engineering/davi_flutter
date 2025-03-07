@@ -20,14 +20,19 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
   /// Map of value column names to functions that extract their values
   final Map<String, double Function(T)> valueColumns;
   
-  /// Default width for all columns
+  /// Map of detail column names to functions that extract their values
+  /// These columns only show up for leaf nodes (non-aggregated rows)
+  final Map<String, String Function(T)> detailColumns;
+  
   final double defaultColumnWidth;
+  /// Default width for all columns
 
   const PivotColumnBuilder({
     required this.levels,
     required this.getValueForLevel,
     this.valueFormatter,
     this.valueColumns = const {},
+    this.detailColumns = const {},
     this.defaultColumnWidth = 120,
   });
 
@@ -97,7 +102,31 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
       );
     }).toList();
     
-    final allColumns = [...levelColumns, ...valueColumnsResult];
+    // Add detail columns
+    final detailColumnsResult = detailColumns.entries.map((entry) {
+      return DaviColumn<T>(
+        id: entry.key,
+        name: entry.key,
+        width: defaultColumnWidth,
+        cellWidget: (params) {
+          // Only show content for non-aggregated rows (no children)
+          if (model.hasChildren(params.rowIndex)) {
+            return const SizedBox.shrink();
+          }
+          final value = entry.value(params.data);
+          return Text(
+            value,
+            overflow: TextOverflow.ellipsis,
+          );
+        },
+      );
+    }).toList();
+    
+    final allColumns = [
+      ...levelColumns, 
+      ...detailColumnsResult,
+      ...valueColumnsResult,
+    ];
     return allColumns;
   }
 } 

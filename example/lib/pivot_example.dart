@@ -44,6 +44,7 @@ class SalesData {
   final String size;        // Level 8
   final String color;       // Level 9
   final String batch;       // Level 10
+  final String itemName;
   final double amount;
   final double usedAmount;
   final double lastPurchaseAmount;
@@ -59,6 +60,7 @@ class SalesData {
     required this.size,
     required this.color,
     required this.batch,
+    required this.itemName,
     required this.amount,
     required this.usedAmount,
     required this.lastPurchaseAmount,
@@ -75,7 +77,7 @@ class PivotTableExample extends StatefulWidget {
 class _PivotTableExampleState extends State<PivotTableExample> {
   late PivotTableModel<SalesData, SalesLevel> model;
   static final _random = Random();
-  static const int totalEntries = 100000;
+  static const int totalEntries = 1000000;
 
   List<String> _getRandomOptions(String prefix, int count) {
     return List.generate(count, (i) => '$prefix ${i + 1}');
@@ -85,41 +87,79 @@ class _PivotTableExampleState extends State<PivotTableExample> {
     final stopwatch = Stopwatch()..start();
     final data = <SalesData>[];
     
-    // Define possible values for each level
-    final divisions = _getRandomOptions('Division', 3);
-    final regions = _getRandomOptions('Region', 5);
-    final departments = _getRandomOptions('Dept', 4);
-    final categories = _getRandomOptions('Category', 6);
-    final subCategories = _getRandomOptions('SubCat', 4);
-    final products = _getRandomOptions('Product', 8);
-    final variants = _getRandomOptions('Variant', 3);
-    final sizes = ['S', 'M', 'L', 'XL'];
-    final colors = ['Red', 'Blue', 'Green', 'Black', 'White'];
-    final batches = _getRandomOptions('Batch', 5);
+    final divisions = _getRandomOptions('Division', 2);
+    final regions = _getRandomOptions('Region', 3);
+    final departments = _getRandomOptions('Dept', 2);
+    final categories = _getRandomOptions('Category', 3);
+    final subCategories = _getRandomOptions('SubCat', 2);
+    final products = _getRandomOptions('Product', 4);
+    final variants = _getRandomOptions('Variant', 2);
+    final sizes = ['S', 'M', 'L'];
+    final colors = ['Red', 'Blue', 'Black'];
+    final batches = _getRandomOptions('Batch', 3);
     
-    for (int i = 0; i < totalEntries; i++) {
-      final amount = _random.nextDouble() * 10000;
-      final usedAmount = amount * (0.6 + (_random.nextDouble() * 0.4));
-      final lastPurchaseAmount = _random.nextDouble() * 10000;
-      
-      data.add(SalesData(
-        division: divisions[_random.nextInt(divisions.length)],
-        region: regions[_random.nextInt(regions.length)],
-        department: departments[_random.nextInt(departments.length)],
-        category: categories[_random.nextInt(categories.length)],
-        subCategory: subCategories[_random.nextInt(subCategories.length)],
-        product: products[_random.nextInt(products.length)],
-        variant: variants[_random.nextInt(variants.length)],
-        size: sizes[_random.nextInt(sizes.length)],
-        color: colors[_random.nextInt(colors.length)],
-        batch: batches[_random.nextInt(batches.length)],
-        amount: amount,
-        usedAmount: usedAmount,
-        lastPurchaseAmount: lastPurchaseAmount,
-      ));
+    final combinationsPerBatch = divisions.length * regions.length * departments.length * 
+        categories.length * subCategories.length * products.length * variants.length * 
+        sizes.length * colors.length * batches.length;
+        
+    final itemsPerBatch = (totalEntries / combinationsPerBatch).ceil();
+    
+    print('Target entries: $totalEntries');
+    print('Combinations per batch: $combinationsPerBatch');
+    print('Items per batch: $itemsPerBatch');
+    
+    var lastProgress = 0;
+    for (var division in divisions) {
+      for (var region in regions) {
+        for (var department in departments) {
+          for (var category in categories) {
+            for (var subCategory in subCategories) {
+              for (var product in products) {
+                for (var variant in variants) {
+                  for (var size in sizes) {
+                    for (var color in colors) {
+                      for (var batch in batches) {
+                        for (int i = 0; i < itemsPerBatch && data.length < totalEntries; i++) {
+                          final amount = _random.nextDouble() * 10000;
+                          final usedAmount = amount * (0.6 + (_random.nextDouble() * 0.4));
+                          final lastPurchaseAmount = _random.nextDouble() * 10000;
+                          
+                          data.add(SalesData(
+                            division: division,
+                            region: region,
+                            department: department,
+                            category: category,
+                            subCategory: subCategory,
+                            product: product,
+                            variant: variant,
+                            size: size,
+                            color: color,
+                            batch: batch,
+                            itemName: 'Item ${batch}-${i + 1}',
+                            amount: amount,
+                            usedAmount: usedAmount,
+                            lastPurchaseAmount: lastPurchaseAmount,
+                          ));
+
+                          // Print progress every 10%
+                          final progress = ((data.length / totalEntries) * 100).floor();
+                          if (progress != lastProgress && progress % 10 == 0) {
+                            print('Generated ${data.length} records (${progress}%) in ${stopwatch.elapsedMilliseconds}ms');
+                            lastProgress = progress;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
-    print('Generated $totalEntries records in ${stopwatch.elapsedMilliseconds}ms');
+    print('Final: Generated ${data.length} records in ${stopwatch.elapsedMilliseconds}ms');
     return data;
   }
 
@@ -139,7 +179,6 @@ class _PivotTableExampleState extends State<PivotTableExample> {
     final pivotBuilder = PivotBuilder<SalesData, SalesLevel>(
       data: data,
       levels: levels,
-      getLevel: (data) => levels[0],
       getValueForLevel: _getLevelText,
       aggregate: (groupData) {
         double maxAmount = 0;
@@ -162,6 +201,7 @@ class _PivotTableExampleState extends State<PivotTableExample> {
           size: groupData.first.size,
           color: groupData.first.color,
           batch: groupData.first.batch,
+          itemName: '',
           amount: maxAmount,
           usedAmount: minUsedAmount,
           lastPurchaseAmount: totalLastPurchaseAmount,
@@ -178,6 +218,9 @@ class _PivotTableExampleState extends State<PivotTableExample> {
         'Amount': (data) => data.amount,
         'Used Amount': (data) => data.usedAmount,
         'Purchase Amount': (data) => data.lastPurchaseAmount,
+      },
+      detailColumns: {
+        'Item Name': (data) => data.itemName,
       },
       valueFormatter: _formatValue,
     );
@@ -224,9 +267,23 @@ class _PivotTableExampleState extends State<PivotTableExample> {
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Text(
-            'Pivot Table with $totalEntries entries and ${SalesLevel.values.length} levels',
-            style: Theme.of(context).textTheme.titleLarge,
+          child: Row(
+            children: [
+              Text(
+                'Pivot Table with $totalEntries entries and ${SalesLevel.values.length} levels',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const Spacer(),
+              ElevatedButton(
+                onPressed: () => model.expandAll(),
+                child: const Text('Expand All'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: () => model.collapseAll(),
+                child: const Text('Collapse All'),
+              ),
+            ],
           ),
         ),
         Expanded(child: Davi(model)),
