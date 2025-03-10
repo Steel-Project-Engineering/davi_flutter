@@ -14,6 +14,9 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
   /// Optional custom formatter for value columns
   final Widget Function(T data, double value, WidgetBuilderParams<T>)? valueFormatter;
   
+  /// Optional custom header background color
+  final Color? headerBackground;
+  
   /// Map of value column names to functions that extract their values
   final Map<String, double Function(T)> valueColumns;
   
@@ -27,14 +30,18 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
   final Color? maxValueColor;
   final Color? minValueColor;
 
+  final Map<String, dynamic> columnProps;
+
   const PivotColumnBuilder({
     required this.levels,
     this.valueFormatter,
+    this.headerBackground,
     this.valueColumns = const {},
     this.detailColumns = const {},
     this.defaultColumnWidth = 120,
     this.maxValueColor,
     this.minValueColor,
+    this.columnProps = const {},
   });
 
   /// Builds the column definitions for the pivot table
@@ -44,6 +51,7 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
         id: level.id,
         name: level.displayName,
         width: defaultColumnWidth,
+        headerBackground: headerBackground,
         cellWidget: (params) {
           final hasChildren = model.hasChildren(params.rowIndex);
           final currentLevel = model.getLevel(params.rowIndex);
@@ -89,6 +97,7 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
         id: entry.key,
         name: entry.key,
         width: defaultColumnWidth,
+        headerBackground: headerBackground,
         cellAlignment: Alignment.centerLeft,
         cellPadding: EdgeInsets.zero,
         cellBackground: (params) => !model.hasChildren(params.rowIndex) 
@@ -125,6 +134,7 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
         id: entry.key,
         name: entry.key,
         width: defaultColumnWidth,
+        headerBackground: headerBackground,
         cellWidget: (params) {
           // Only show content for non-aggregated rows (no children)
           if (model.hasChildren(params.rowIndex)) {
