@@ -243,7 +243,13 @@ class _PivotTableExampleState extends State<PivotTableExample> {
       valueFormatter: _formatValue,
       maxValueColor: Colors.green,
       minValueColor: Colors.red,
-      headerBackgroundColor: Colors.purple.shade100,
+      headerBackgroundColor: Colors.pink.shade100, // This gets overridden by the builder below
+      headerBackgroundColorBuilder: (header) {
+        if (header == 'Division') {
+          return Colors.orange.shade100;
+        }
+        return Colors.purple.shade100;
+      },
     );
 
     model = PivotTableModel.withColumnBuilder(

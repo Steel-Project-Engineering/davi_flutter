@@ -17,6 +17,9 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
   /// Optional custom header background color
   final Color? headerBackgroundColor;
   
+  /// Optional builder for dynamic header background colors
+  final Color Function(String header)? headerBackgroundColorBuilder;
+  
   /// Map of value column names to functions that extract their values
   final Map<String, double Function(T)> valueColumns;
   
@@ -36,6 +39,7 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
     required this.levels,
     this.valueFormatter,
     this.headerBackgroundColor,
+    this.headerBackgroundColorBuilder,
     this.valueColumns = const {},
     this.detailColumns = const {},
     this.defaultColumnWidth = 120,
@@ -51,7 +55,7 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
         id: level.id,
         name: level.displayName,
         width: defaultColumnWidth,
-        headerBackgroundColor: headerBackgroundColor,
+        headerBackgroundColor: headerBackgroundColorBuilder?.call(level.displayName) ?? headerBackgroundColor,
         cellWidget: (params) {
           final hasChildren = model.hasChildren(params.rowIndex);
           final currentLevel = model.getLevel(params.rowIndex);
