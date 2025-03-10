@@ -11,9 +11,6 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
   /// Available hierarchy levels in order
   final List<L> levels;
   
-  /// Function to extract display text for a level from a data item
-  final String Function(T data, L level) getValueForLevel;
-  
   /// Optional custom formatter for value columns
   final Widget Function(T data, double value, WidgetBuilderParams<T>)? valueFormatter;
   
@@ -29,7 +26,6 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
 
   const PivotColumnBuilder({
     required this.levels,
-    required this.getValueForLevel,
     this.valueFormatter,
     this.valueColumns = const {},
     this.detailColumns = const {},
@@ -45,12 +41,15 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
         width: defaultColumnWidth,
         cellWidget: (params) {
           final hasChildren = model.hasChildren(params.rowIndex);
-          final isExpanded = model.isExpanded(params.rowIndex);
           final currentLevel = model.getLevel(params.rowIndex);
           
-          if (level != currentLevel) return const SizedBox.shrink();
+          if (!hasChildren || level != currentLevel) {
+            // Shrink by default for detail rows or non-matching levels
+            return const SizedBox.shrink();
+          }
           
-          String text = getValueForLevel(params.data, level);
+          final isExpanded = model.isExpanded(params.rowIndex);
+          String text = level.getValue(params.data);
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: [

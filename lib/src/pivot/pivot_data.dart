@@ -1,11 +1,13 @@
-/// Defines the interface for hierarchy levels in a pivot table.
-/// Each level represents a grouping category in the data hierarchy.
+/// Base interface for all levels in the hierarchy
 abstract class HierarchyLevel {
   /// Display name shown in the UI for this hierarchy level
   String get displayName;
   
   /// Unique identifier for this level
   String get id;
+
+  /// Get the value for this level from the data item
+  String getValue(dynamic data);
 }
 
 /// Represents a node in the pivot table data structure.

@@ -31,6 +31,23 @@ enum SalesLevel implements HierarchyLevel {
   
   @override
   String get id => name;
+
+  @override
+  String getValue(dynamic data) {
+    final salesData = data as SalesData;
+    switch (this) {
+      case SalesLevel.division: return salesData.division;
+      case SalesLevel.region: return salesData.region;
+      case SalesLevel.department: return salesData.department;
+      case SalesLevel.category: return salesData.category;
+      case SalesLevel.subCategory: return salesData.subCategory;
+      case SalesLevel.product: return salesData.product;
+      case SalesLevel.variant: return salesData.variant;
+      case SalesLevel.size: return salesData.size;
+      case SalesLevel.color: return salesData.color;
+      case SalesLevel.batch: return salesData.batch;
+    }
+  }
 }
 
 class SalesData {
@@ -179,7 +196,6 @@ class _PivotTableExampleState extends State<PivotTableExample> {
     final pivotBuilder = PivotBuilder<SalesData, SalesLevel>(
       data: data,
       levels: levels,
-      getValueForLevel: _getLevelText,
       aggregate: (groupData) {
         double maxAmount = 0;
         double minUsedAmount = double.infinity;
@@ -213,7 +229,6 @@ class _PivotTableExampleState extends State<PivotTableExample> {
 
     final columnBuilder = PivotColumnBuilder<SalesData, SalesLevel>(
       levels: levels,
-      getValueForLevel: _getLevelText,
       valueColumns: {
         'Amount': (data) => data.amount,
         'Used Amount': (data) => data.usedAmount,
@@ -244,21 +259,6 @@ class _PivotTableExampleState extends State<PivotTableExample> {
             : Colors.black,
       ),
     );
-  }
-
-  String _getLevelText(SalesData data, SalesLevel level) {
-    switch (level) {
-      case SalesLevel.division: return data.division;
-      case SalesLevel.region: return data.region;
-      case SalesLevel.department: return data.department;
-      case SalesLevel.category: return data.category;
-      case SalesLevel.subCategory: return data.subCategory;
-      case SalesLevel.product: return data.product;
-      case SalesLevel.variant: return data.variant;
-      case SalesLevel.size: return data.size;
-      case SalesLevel.color: return data.color;
-      case SalesLevel.batch: return data.batch;
-    }
   }
 
   @override

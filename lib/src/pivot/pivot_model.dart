@@ -115,8 +115,8 @@ class PivotTableModel<T, L extends HierarchyLevel> extends DaviModel<T> {
     return count;
   }
   
-  /// Gets the hierarchy level for a row
-  L getLevel(int rowIndex) {
+  /// Gets the hierarchy level for a row (null for detail rows)
+  L? getLevel(int rowIndex) {
     if (rowIndex < 0 || rowIndex >= _flattenedRows.length) return levels[0];
     return _flattenedRows[rowIndex].level;
   }
