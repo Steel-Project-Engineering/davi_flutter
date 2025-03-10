@@ -101,7 +101,7 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
         id: entry.key,
         name: entry.key,
         width: defaultColumnWidth,
-        headerBackgroundColor: headerBackgroundColor,
+        headerBackgroundColor: headerBackgroundColorBuilder?.call(entry.key) ?? headerBackgroundColor,
         cellAlignment: Alignment.centerLeft,
         cellPadding: EdgeInsets.zero,
         cellBackground: (params) => !model.hasChildren(params.rowIndex) 
@@ -138,7 +138,7 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
         id: entry.key,
         name: entry.key,
         width: defaultColumnWidth,
-        headerBackgroundColor: headerBackgroundColor,
+        headerBackgroundColor: headerBackgroundColorBuilder?.call(entry.key) ?? headerBackgroundColor,
         cellWidget: (params) {
           // Only show content for non-aggregated rows (no children)
           if (model.hasChildren(params.rowIndex)) {

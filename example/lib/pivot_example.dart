@@ -245,7 +245,7 @@ class _PivotTableExampleState extends State<PivotTableExample> {
       minValueColor: Colors.red,
       headerBackgroundColor: Colors.pink.shade100, // This gets overridden by the builder below
       headerBackgroundColorBuilder: (header) {
-        if (header == 'Division') {
+        if (header == 'ItamNam') {
           return Colors.orange.shade100;
         }
         return Colors.purple.shade100;
