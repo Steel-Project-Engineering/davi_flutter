@@ -24,12 +24,17 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
   final double defaultColumnWidth;
   /// Default width for all columns
 
+  final Color? maxValueColor;
+  final Color? minValueColor;
+
   const PivotColumnBuilder({
     required this.levels,
     this.valueFormatter,
     this.valueColumns = const {},
     this.detailColumns = const {},
     this.defaultColumnWidth = 120,
+    this.maxValueColor,
+    this.minValueColor,
   });
 
   /// Builds the column definitions for the pivot table
@@ -84,18 +89,31 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
         id: entry.key,
         name: entry.key,
         width: defaultColumnWidth,
+        cellAlignment: Alignment.centerLeft,
+        cellPadding: EdgeInsets.zero,
+        cellBackground: (params) => !model.hasChildren(params.rowIndex) 
+            ? entry.value(params.data) == model.getMaxValue(params.rowIndex, entry.key)
+                ? maxValueColor
+                : entry.value(params.data) == model.getMinValue(params.rowIndex, entry.key)
+                    ? minValueColor
+                    : null
+            : null,
         cellWidget: (params) {
           final value = entry.value(params.data);
-          if (valueFormatter != null) {
-            return valueFormatter!(params.data, value, params);
-          }
-          return Text(
-            value.toString(),
-            style: TextStyle(
-              fontWeight: model.hasChildren(params.rowIndex) 
-                  ? FontWeight.bold 
-                  : FontWeight.normal,
-            ),
+          final hasChildren = model.hasChildren(params.rowIndex);
+          
+          Widget content = valueFormatter != null 
+              ? valueFormatter!(params.data, value, params)
+              : Text(
+                  value.toString(),
+                  style: TextStyle(
+                    fontWeight: hasChildren ? FontWeight.bold : FontWeight.normal,
+                  ),
+                );
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: content,
           );
         },
       );

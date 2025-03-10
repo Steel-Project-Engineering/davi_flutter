@@ -14,10 +14,14 @@ class PivotBuilder<T, L extends HierarchyLevel> {
   /// Function to aggregate multiple items into a single representative item
   final T Function(List<T> groupData) aggregate;
 
+  /// Function to calculate max values for each column
+  final Map<String, double Function(T)> valueColumns;
+
   const PivotBuilder({
     required this.data,
     required this.levels,
     required this.aggregate,
+    required this.valueColumns,
   });
 
   /// Builds the hierarchical pivot structure from the flat data
@@ -40,14 +44,26 @@ class PivotBuilder<T, L extends HierarchyLevel> {
       List<T> groupItems = entry.value;
       bool isLeaf = levelIndex == levels.length - 1;
 
+      final maxValues = <String, double>{};
+      final minValues = <String, double>{};
+      for (var column in valueColumns.entries) {
+        final values = groupItems.map((item) => column.value(item));
+        maxValues[column.key] = values.reduce((a, b) => a > b ? a : b);
+        minValues[column.key] = values.reduce((a, b) => a < b ? a : b);
+      }
+
       if (isLeaf) {
         return PivotData<T, L>(
           data: aggregate(groupItems),
           level: currentLevel,
+          maxValues: maxValues,
+          minValues: minValues,
           children: groupItems.map((item) => 
             PivotData<T, L>(
               data: item,
               level: currentLevel,
+              maxValues: maxValues,
+              minValues: minValues,
               children: [],
             )
           ).toList(),
@@ -57,6 +73,8 @@ class PivotBuilder<T, L extends HierarchyLevel> {
       return PivotData<T, L>(
         data: aggregate(groupItems),
         level: currentLevel,
+        maxValues: maxValues,
+        minValues: minValues,
         children: _buildGroups(groupItems, levelIndex + 1),
       );
     }).toList();

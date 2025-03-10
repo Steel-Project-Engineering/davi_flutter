@@ -192,10 +192,17 @@ class _PivotTableExampleState extends State<PivotTableExample> {
   void _initializeModel() {
     final data = _generateData();
     final levels = SalesLevel.values;
+    
+    final valueColumns = <String, double Function(SalesData)>{
+      'Amount': (data) => data.amount,
+      'Used Amount': (data) => data.usedAmount,
+      'Purchase Amount': (data) => data.lastPurchaseAmount,
+    };
 
     final pivotBuilder = PivotBuilder<SalesData, SalesLevel>(
       data: data,
       levels: levels,
+      valueColumns: valueColumns,
       aggregate: (groupData) {
         double maxAmount = 0;
         double minUsedAmount = double.infinity;
@@ -229,15 +236,13 @@ class _PivotTableExampleState extends State<PivotTableExample> {
 
     final columnBuilder = PivotColumnBuilder<SalesData, SalesLevel>(
       levels: levels,
-      valueColumns: {
-        'Amount': (data) => data.amount,
-        'Used Amount': (data) => data.usedAmount,
-        'Purchase Amount': (data) => data.lastPurchaseAmount,
-      },
+      valueColumns: valueColumns,
       detailColumns: {
         'Item Name': (data) => data.itemName,
       },
       valueFormatter: _formatValue,
+      maxValueColor: Colors.green,
+      minValueColor: Colors.red,
     );
 
     model = PivotTableModel.withColumnBuilder(
@@ -247,6 +252,7 @@ class _PivotTableExampleState extends State<PivotTableExample> {
     );
   }
 
+ // Example of conditional formatting
   Widget _formatValue(SalesData data, double value, WidgetBuilderParams<SalesData> params) {
     return Text(
       '\$${value.toStringAsFixed(0)}',
@@ -254,8 +260,8 @@ class _PivotTableExampleState extends State<PivotTableExample> {
         fontWeight: value == data.amount || value == data.lastPurchaseAmount
             ? FontWeight.bold 
             : FontWeight.normal,
-        color: value == data.usedAmount && value < data.amount
-            ? Colors.red 
+        color: value == data.usedAmount && value < 100
+            ? Colors.yellow 
             : Colors.black,
       ),
     );

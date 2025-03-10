@@ -56,6 +56,8 @@ class PivotTableModel<T, L extends HierarchyLevel> extends DaviModel<T> {
         hasChildren: node.children.isNotEmpty,
         isExpanded: node.isExpanded,
         originalIndex: currentIndex,
+        maxValues: node.maxValues,
+        minValues: node.minValues,
       ));
       
       if (node.isExpanded) {
@@ -152,5 +154,15 @@ class PivotTableModel<T, L extends HierarchyLevel> extends DaviModel<T> {
     traverse(_pivotData);
     _flattenData();
     notifyListeners();
+  }
+
+  double? getMaxValue(int rowIndex, String columnKey) {
+    if (rowIndex < 0 || rowIndex >= _flattenedRows.length) return null;
+    return _flattenedRows[rowIndex].maxValues[columnKey];
+  }
+
+  double? getMinValue(int rowIndex, String columnKey) {
+    if (rowIndex < 0 || rowIndex >= _flattenedRows.length) return null;
+    return _flattenedRows[rowIndex].minValues[columnKey];
   }
 }

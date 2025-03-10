@@ -22,6 +22,12 @@ class PivotData<T, L extends HierarchyLevel> {
   /// Child nodes under this node in the hierarchy
   final List<PivotData<T, L>> children;
   
+  /// Max values for this node's children
+  final Map<String, double> maxValues;
+  
+  /// Min values for this node's children
+  final Map<String, double> minValues;
+  
   /// Whether this node's children are currently visible in the UI
   bool isExpanded;
 
@@ -29,6 +35,8 @@ class PivotData<T, L extends HierarchyLevel> {
     required this.data,
     required this.level,
     this.children = const [],
+    this.maxValues = const {},
+    this.minValues = const {},
     this.isExpanded = false,
   });
 }
@@ -49,6 +57,12 @@ class PivotRowData<T, L extends HierarchyLevel> {
   
   /// Original index in the hierarchy for state management
   final int originalIndex;
+  
+  /// Max values for this row's children
+  final Map<String, double> maxValues;
+  
+  /// Min values for this row's children
+  final Map<String, double> minValues;
 
   PivotRowData({
     required this.data,
@@ -56,5 +70,7 @@ class PivotRowData<T, L extends HierarchyLevel> {
     required this.hasChildren,
     required this.isExpanded,
     required this.originalIndex,
+    required this.maxValues,
+    required this.minValues,
   });
 } 
