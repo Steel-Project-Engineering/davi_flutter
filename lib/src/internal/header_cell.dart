@@ -99,7 +99,7 @@ class _DaviHeaderCellState extends State<DaviHeaderCell> {
     header = Stack(clipBehavior: Clip.none, children: [
       Positioned.fill(
           child: Container(
-        color: widget.column.headerBackground,
+        color: widget.column.headerBackgroundColor,
       )),
       Positioned.fill(child: header),
     ]);

@@ -73,7 +73,7 @@ class _HomePageState extends State<HomePage> {
         width: 100,
         rowSpan: (params) => params.rowIndex == _model!.rowsLength - 2 ? 2 : 1,
         cellValue: (params) => params.data.name,
-        headerBackground: Colors.green));
+        headerBackgroundColor: Colors.green));
     list.add(DaviColumn(
         pinStatus: _leftPinned ? PinStatus.left : PinStatus.none,
         name: 'Gender',

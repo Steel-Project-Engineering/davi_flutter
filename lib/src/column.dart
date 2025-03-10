@@ -21,7 +21,7 @@ class DaviColumn<DATA> extends ChangeNotifier {
       this.headerPadding,
       this.cellPadding,
       this.headerAlignment,
-      this.headerBackground,
+      this.headerBackgroundColor,
       this.cellAlignment,
       this.cellBackground,
       this.headerTextStyle,
@@ -94,7 +94,7 @@ class DaviColumn<DATA> extends ChangeNotifier {
   final Alignment? headerAlignment;
 
   /// The background color of the column header.
-  final Color? headerBackground;
+  final Color? headerBackgroundColor;
 
   /// The alignment of the cell content within the column.
   /// This controls how the cell data is positioned within the cell area.
