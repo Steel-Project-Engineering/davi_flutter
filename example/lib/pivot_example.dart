@@ -243,7 +243,7 @@ class _PivotTableExampleState extends State<PivotTableExample> {
       valueFormatter: _formatValue,
       maxValueColor: Colors.green,
       minValueColor: Colors.red,
-      headerBackground: Colors.purple.shade100,
+      headerBackgroundColor: Colors.purple.shade100,
     );
 
     model = PivotTableModel.withColumnBuilder(
