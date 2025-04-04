@@ -1,3 +1,5 @@
+import 'package:davi/davi.dart';
+
 /// Base interface for all levels in the hierarchy
 abstract class HierarchyLevel {
   /// Display name shown in the UI for this hierarchy level
@@ -73,4 +75,10 @@ class PivotRowData<T, L extends HierarchyLevel> {
     required this.maxValues,
     required this.minValues,
   });
-} 
+}
+
+/// Gets the currently displayed/visible data from the pivot table
+List<T> getDisplayedData<T, L extends HierarchyLevel>(PivotTableModel<T, L> model) {
+  // This returns all the rows that are currently visible in the table
+  return model.rows.toList();
+}

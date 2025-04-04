@@ -95,6 +95,15 @@ class _PivotTableExampleState extends State<PivotTableExample> {
   late PivotTableModel<SalesData, SalesLevel> model;
   static final _random = Random();
   static const int totalEntries = 1000000;
+  SalesData? _summaryRow;
+  bool _isUpdatingSummaryRow = false;
+  // Track the current number of visible rows to detect expansion changes
+  int _lastVisibleRowCount = 0;
+  final List<double Function(SalesData)> _valueGetters = [
+    (data) => data.amount,
+    (data) => data.usedAmount,
+    (data) => data.lastPurchaseAmount,
+  ];
 
   List<String> _getRandomOptions(String prefix, int count) {
     return List.generate(count, (i) => '$prefix ${i + 1}');
@@ -257,6 +266,87 @@ class _PivotTableExampleState extends State<PivotTableExample> {
       levels: levels,
       columnBuilder: columnBuilder,
     );
+    
+    // Add a custom column that calculates the maximum value for each displayed row
+    model.addColumns([
+      MaxValueUsingDisplayedDataColumn(
+        model: model,
+        valueFormatter: _formatValue,
+        width: 150,
+        headerBackgroundColor: Colors.purple.shade100,
+        valueGetters: _valueGetters,
+      ),
+    ]);
+    
+    // Add a smarter listener that only triggers on data visibility changes
+    model.addListener(_onModelChanged);
+    
+    // Initial addition of summary row
+    _updateSummaryRow();
+    _lastVisibleRowCount = model.rows.length;
+  }
+
+  void _onModelChanged() {
+    // Only update if the number of visible rows has changed (expand/collapse)
+    // or if we're initializing (_lastVisibleRowCount == 0)
+    final currentRowCount = model.rows.length;
+    if (currentRowCount != _lastVisibleRowCount) {
+      _updateSummaryRow();
+      _lastVisibleRowCount = currentRowCount;
+    }
+  }
+
+  void _updateSummaryRow() {
+    // Prevent recursive calls from the model listener
+    if (_isUpdatingSummaryRow) return;
+    
+    try {
+      _isUpdatingSummaryRow = true;
+      
+      // First, remove the existing summary row if it exists
+      if (_summaryRow != null) {
+        model.removeRow(_summaryRow!);
+        _summaryRow = null;
+      }
+      
+      // Calculate new summary values
+      final summaryValues = MaxSummaryRow.getSummaryValues<SalesData, SalesLevel>(
+        model: model,
+        valueGetters: _valueGetters,
+      );
+      
+      // Skip adding the summary row if there are no values
+      if (summaryValues.isEmpty) return;
+      
+      // Create and add the new summary row
+      _summaryRow = SalesData(
+        division: 'Total',
+        region: '',
+        department: '',
+        category: '',
+        subCategory: '',
+        product: '',
+        variant: '',
+        size: '',
+        color: '',
+        batch: '',
+        itemName: '',
+        amount: summaryValues[0],
+        usedAmount: summaryValues[1],
+        lastPurchaseAmount: summaryValues[2],
+      );
+      
+      model.addRow(_summaryRow!);
+    } finally {
+      _isUpdatingSummaryRow = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    // Remove the listener
+    model.removeListener(_onModelChanged);
+    super.dispose();
   }
 
  // Example of conditional formatting

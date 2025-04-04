@@ -42,3 +42,5 @@ export 'src/pivot/pivot_data.dart';
 export 'src/pivot/pivot_model.dart';
 export 'src/pivot/pivot_builder.dart';
 export 'src/pivot/pivot_column_builder.dart';
+export 'src/pivot/max_value_column.dart';
+export 'src/pivot/max_summary_row.dart';
