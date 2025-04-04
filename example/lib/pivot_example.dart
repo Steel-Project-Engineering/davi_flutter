@@ -269,7 +269,7 @@ class _PivotTableExampleState extends State<PivotTableExample> {
     
     // Add a custom column that calculates the maximum value for each displayed row
     model.addColumns([
-      MaxValueUsingDisplayedDataColumn(
+      MaxValueColumn(
         model: model,
         valueFormatter: _formatValue,
         width: 150,
@@ -320,7 +320,7 @@ class _PivotTableExampleState extends State<PivotTableExample> {
       
       // Create and add the new summary row
       _summaryRow = SalesData(
-        division: 'Total',
+        division: '',
         region: '',
         department: '',
         category: '',
