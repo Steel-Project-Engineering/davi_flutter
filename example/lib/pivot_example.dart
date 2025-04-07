@@ -269,7 +269,7 @@ class _PivotTableExampleState extends State<PivotTableExample> {
         valueFormatter: _formatValue,
         width: 150,
         headerBackgroundColor: Colors.purple.shade100,
-        valueGetters: _valueColumns.values.toList(),
+        valueColumns: _valueColumns
       ),
     ]);
     

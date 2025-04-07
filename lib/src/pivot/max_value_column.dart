@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:davi/davi.dart';
 import 'package:flutter/material.dart';
 
@@ -6,7 +5,7 @@ import 'package:flutter/material.dart';
 /// from a list of value getters, with efficient caching
 class MaxValueColumn<T, L extends HierarchyLevel> extends DaviColumn<T> {
   final PivotTableModel<T, L> model;
-  final List<double Function(T)> valueGetters;
+  final Map<String, double Function(T)> valueColumns;
   final Widget Function(T, double, WidgetBuilderParams<T>)? valueFormatter;
   
   // Keep track of our listeners to avoid duplicates and allow cleanup
@@ -17,27 +16,35 @@ class MaxValueColumn<T, L extends HierarchyLevel> extends DaviColumn<T> {
     required this.valueFormatter,
     required super.width,
     required super.headerBackgroundColor,
-    required this.valueGetters,
+    required this.valueColumns
   }) : super(
     id: 'Max',
     name: 'Max',
     cellAlignment: Alignment.centerLeft,
     cellPadding: EdgeInsets.zero,
     cellWidget: (params) {      
-      // Get the max value for this specific row
-      final rowMaxValue = valueGetters.length == 1 
-          ? valueGetters[0](params.data)
-          : valueGetters.map((getter) => getter(params.data)).reduce((a, b) => max(a, b));
+      // Get the max value and its column name for this specific row
+      double maxValue = valueColumns.values.first(params.data);
+      String maxColumnName = valueColumns.keys.first;
       
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: valueFormatter != null 
-          ? valueFormatter(
-            params.data, 
-            rowMaxValue, 
-            params
-          )
-          : Text(rowMaxValue.toString()),
+      for (var entry in valueColumns.entries) {
+        final value = entry.value(params.data);
+        if (value > maxValue) {
+          maxValue = value;
+          maxColumnName = entry.key;
+        }
+      }
+      
+      final content = valueFormatter != null 
+          ? valueFormatter(params.data, maxValue, params)
+          : Text(maxValue.toString());
+      
+      return Tooltip(
+        message: 'Max from: $maxColumnName',
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: content,
+        ),
       );
     },
   );
