@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 class MaxValueColumn<T, L extends HierarchyLevel> extends DaviColumn<T> {
   final PivotTableModel<T, L> model;
   final List<double Function(T)> valueGetters;
-  final Widget Function(T, double, WidgetBuilderParams<T>) valueFormatter;
+  final Widget Function(T, double, WidgetBuilderParams<T>)? valueFormatter;
   
   // Keep track of our listeners to avoid duplicates and allow cleanup
   static final Map<int, VoidCallback> _listeners = {};
@@ -31,11 +31,13 @@ class MaxValueColumn<T, L extends HierarchyLevel> extends DaviColumn<T> {
       
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: valueFormatter(
-          params.data, 
-          rowMaxValue, 
-          params
-        ),
+        child: valueFormatter != null 
+          ? valueFormatter(
+            params.data, 
+            rowMaxValue, 
+            params
+          )
+          : Text(rowMaxValue.toString()),
       );
     },
   );

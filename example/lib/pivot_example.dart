@@ -97,13 +97,14 @@ class _PivotTableExampleState extends State<PivotTableExample> {
   static const int totalEntries = 1000000;
   SalesData? _summaryRow;
   bool _isUpdatingSummaryRow = false;
+  final _valueColumns = <String, double Function(SalesData)>{
+    'Amount': (data) => data.amount,
+    'Used Amount': (data) => data.usedAmount,
+    'Purchase Amount': (data) => data.lastPurchaseAmount,
+  };
   // Track the current number of visible rows to detect expansion changes
   int _lastVisibleRowCount = 0;
-  final List<double Function(SalesData)> _valueGetters = [
-    (data) => data.amount,
-    (data) => data.usedAmount,
-    (data) => data.lastPurchaseAmount,
-  ];
+
 
   List<String> _getRandomOptions(String prefix, int count) {
     return List.generate(count, (i) => '$prefix ${i + 1}');
@@ -202,16 +203,10 @@ class _PivotTableExampleState extends State<PivotTableExample> {
     final data = _generateData();
     final levels = SalesLevel.values;
     
-    final valueColumns = <String, double Function(SalesData)>{
-      'Amount': (data) => data.amount,
-      'Used Amount': (data) => data.usedAmount,
-      'Purchase Amount': (data) => data.lastPurchaseAmount,
-    };
-
     final pivotBuilder = PivotBuilder<SalesData, SalesLevel>(
       data: data,
       levels: levels,
-      valueColumns: valueColumns,
+      valueColumns: _valueColumns,
       aggregate: (groupData) {
         double maxAmount = 0;
         double minUsedAmount = double.infinity;
@@ -245,7 +240,7 @@ class _PivotTableExampleState extends State<PivotTableExample> {
 
     final columnBuilder = PivotColumnBuilder<SalesData, SalesLevel>(
       levels: levels,
-      valueColumns: valueColumns,
+      valueColumns: _valueColumns,
       detailColumns: {
         'Item Name': (data) => data.itemName,
       },
@@ -274,7 +269,7 @@ class _PivotTableExampleState extends State<PivotTableExample> {
         valueFormatter: _formatValue,
         width: 150,
         headerBackgroundColor: Colors.purple.shade100,
-        valueGetters: _valueGetters,
+        valueGetters: _valueColumns.values.toList(),
       ),
     ]);
     
@@ -282,7 +277,7 @@ class _PivotTableExampleState extends State<PivotTableExample> {
     model.addListener(_onModelChanged);
     
     // Initial addition of summary row
-    _updateSummaryRow();
+    _updateSummaryRow(_valueColumns.values.toList());
     _lastVisibleRowCount = model.rows.length;
   }
 
@@ -291,12 +286,12 @@ class _PivotTableExampleState extends State<PivotTableExample> {
     // or if we're initializing (_lastVisibleRowCount == 0)
     final currentRowCount = model.rows.length;
     if (currentRowCount != _lastVisibleRowCount) {
-      _updateSummaryRow();
+      _updateSummaryRow(_valueColumns.values.toList());
       _lastVisibleRowCount = currentRowCount;
     }
   }
 
-  void _updateSummaryRow() {
+  void _updateSummaryRow(List<double Function(SalesData)> valueGetters) {
     // Prevent recursive calls from the model listener
     if (_isUpdatingSummaryRow) return;
     
@@ -312,7 +307,7 @@ class _PivotTableExampleState extends State<PivotTableExample> {
       // Calculate new summary values
       final summaryValues = MaxSummaryRow.getSummaryValues<SalesData, SalesLevel>(
         model: model,
-        valueGetters: _valueGetters,
+        valueGetters: valueGetters,
       );
       
       // Skip adding the summary row if there are no values
