@@ -266,7 +266,7 @@ class _PivotTableExampleState extends State<PivotTableExample> {
     model.addColumns([
       MaxValueColumn(
         model: model,
-        valueFormatter: _formatValue,
+        valueFormatter: null,
         width: 150,
         headerBackgroundColor: Colors.purple.shade100,
         valueColumns: _valueColumns
