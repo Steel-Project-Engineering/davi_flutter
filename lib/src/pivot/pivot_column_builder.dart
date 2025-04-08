@@ -75,6 +75,9 @@ class PivotColumnBuilder<T, L extends HierarchyLevel> {
                   icon: Icon(
                     isExpanded ? Icons.expand_more : Icons.chevron_right,
                     size: 20,
+                    color: Theme.of(params.buildContext).brightness == Brightness.dark
+                        ? Colors.white70  // lighter color for dark theme
+                        : null,  // default color for light theme
                   ),
                   onPressed: () => model.toggleExpand(params.rowIndex),
                   padding: EdgeInsets.zero,
